@@ -14,7 +14,7 @@
 
 
 ## 2 复现精度
->#### 在XTREME的XNLI数据集的测试效果如下表。
+>#### 在XTREME的PAWS-X数据集的测试效果如下表。
 >ACC是准确率的简写
 
 |网络 |opt|batch_size|数据集|ACC|ACC(原论文)|
