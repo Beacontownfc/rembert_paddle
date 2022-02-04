@@ -165,7 +165,7 @@ def evaluate(model, args):
         pred = logits.astype('float32').argmax(-1)
         labels = batch[3].reshape([-1])
         total_corr += (pred == labels).astype('float32').sum().tolist()[0]
-        total_pred += len(batch[3])
+        total_pred += len(labels)
     print('Acc:', total_corr / total_pred)
         
 
