@@ -89,7 +89,7 @@ python main.py --task=xnli --do_eval=1 --data_dir=<DATA_DIR> --output_dir=<OUTPU
 
 运行结束后你将看到如下结果:
 ```bash
-Acc 89.02
+Acc 80.60
 ```
 
 ###### 训练并测试在XTREME-PAWS-X数据集上的ACC：
@@ -105,7 +105,7 @@ python main.py --task=paws --do_eval=1 --data_dir=<DATA_DIR> --output_dir=<OUTPU
 
 运行结束后你将看到如下结果:
 ```bash
-ACC 96.05
+ACC 87.69
 ```
 
 ## 6 代码结构与详细说明
