@@ -19,7 +19,7 @@
 
 |网络 |opt|batch_size|数据集|ACC|ACC(原论文)|
 | :---: | :---: | :---: | :---: | :---: | :---: |
-|RemBert|AdamW|16|XTREME-PAWS-X|96.05|87.5|
+|RemBert|AdamW|16|XTREME-PAWS-X|87.69|87.5|
 
 >复现代码训练日志：
 [复现代码训练日志](paws.log)
@@ -28,11 +28,15 @@
 
 |网络 |opt|batch_size|数据集|ACC|ACC(原论文)|
 | :---: | :---: | :---: | :---: | :---: | :---: |
-|RemBert|AdamW|16|XTREME-XNLI|89.02|80.8|
+|RemBert|AdamW|16|XTREME-XNLI|80.60|80.8|
 
 >复现代码及训练日志：
 [复现代码训练日志](xnli.log)
->
+
+>验收标准为在XTREME的PAWS-X数据集和XTREME-XNLI数据集的测试精度的平均值为84.2
+>`原论文: (87.5 + 80.8) / 2 = 84.15`
+>`复现精度：(87.69 + 80.60) / 2 = 84.15`
+
 ## 3 数据集
 XTREME的XNLI和PAWS-X数据集是XTREME上的sequence-pair classification任务
 
