@@ -109,7 +109,7 @@ python main.py --task=paws --do_eval=1 --data_dir=<DATA_DIR> --output_dir=<OUTPU
 
 运行结束后你将看到如下结果:
 ```bash
-ACC 87.69
+ACC 87.78
 ```
 
 ## 6 代码结构与详细说明
