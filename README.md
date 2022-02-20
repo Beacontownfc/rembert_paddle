@@ -79,7 +79,7 @@ xnli数据集checkpoint:
 
 
 ```bash
-python main.py --task=xnli --do_train=1 --do_eval=1 --data_dir=<DATA_DIR> --output_dir=<OUTPUT_DIR> --pretrain_model=<MODEL_DIR>
+python main.py --task=xnli --do_train=1 --do_eval=1 --data_dir=<DATA_DIR> --output_dir=<OUTPUT_DIR> --pretrain_model=<MODEL_DIR> --learning_rate=1e-5
 ```
 
 从checkpoint中快速评估模型:
@@ -99,7 +99,7 @@ Acc 80.60
 ###### 训练并测试在XTREME-PAWS-X数据集上的ACC：
 
 ```bash
-python main.py --task=paws --do_train=1 --do_eval=1 --data_dir=<DATA_DIR> --output_dir=<OUTPUT_DIR> --pretrain_model=<MODEL_DIR>
+python main.py main.py --task=paws --do_train=1 --do_eval=1 --data_dir=<DATA_DIR> --output_dir=<OUTPUT_DIR> --eval_step=500 --pretrain_model=<MODEL_DIR>
 ```
 
 从checkpoint中快速评估模型:
@@ -123,6 +123,5 @@ ACC 87.78
 ├─datagenerator.py         # data生成器
 ├─dataProcessor.py         # 数据生成器 
 ├─main.py                  # 主文件
-├─rembertForSeqPairPred.py # rembert下游任务
 ├─trainer.py               # 训练文件                                    
 ```
