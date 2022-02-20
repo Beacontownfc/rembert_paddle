@@ -63,17 +63,10 @@ pip install paddlenlp==2.2.4
 ## 5 快速开始
 如果你觉得以下步骤过于繁琐，您可以直接到此处
 [链接](https://aistudio.baidu.com/aistudio/projectdetail/3426124)
-利用我们提供的AISTUDIO NOTEBOOK快速验证和训练评估模型。
+利用我们提供的AISTUDIO NOTEBOOK快速验证和训练评估模型。checkpoint在此aistudio项目中。
 
 首先，您需要下载预训练权重:
 [下载地址](https://aistudio.baidu.com/aistudio/datasetdetail/125938)
-
-checkpoint下载地址:
-paws-x数据集checkpoint:
-[下载地址](https://aistudio.baidu.com/aistudio/datasetdetail/126525)
-
-xnli数据集checkpoint:
-[下载地址](https://aistudio.baidu.com/aistudio/datasetdetail/127104)
 
 ###### 训练并测试在XTREME-XNLI数据集上的ACC：
 
