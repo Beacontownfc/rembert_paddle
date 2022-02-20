@@ -19,7 +19,7 @@
 
 |网络 |opt|batch_size|数据集|ACC|ACC(原论文)|
 | :---: | :---: | :---: | :---: | :---: | :---: |
-|RemBert|AdamW|16|XTREME-PAWS-X|87.69|87.5|
+|RemBert|AdamW|16|XTREME-PAWS-X|87.78|87.5|
 
 >复现代码训练日志：
 [复现代码训练日志](paws.log)
@@ -28,14 +28,16 @@
 
 |网络 |opt|batch_size|数据集|ACC|ACC(原论文)|
 | :---: | :---: | :---: | :---: | :---: | :---: |
-|RemBert|AdamW|16|XTREME-XNLI|80.60|80.8|
+|RemBert|AdamW|16|XTREME-XNLI|80.89|80.8|
 
 >复现代码及训练日志：
 [复现代码训练日志](xnli.log)
 
 >验收标准为在XTREME的PAWS-X数据集和XTREME-XNLI数据集的测试精度的平均值为84.2
+>
 >`原论文: (87.5 + 80.8) / 2 = 84.15`
->`复现精度：(87.69 + 80.60) / 2 = 84.15`
+>
+>`复现精度：(87.78 + 80.89) / 2 = 84.33`
 
 ## 3 数据集
 XTREME的XNLI和PAWS-X数据集是XTREME上的sequence-pair classification任务
@@ -47,7 +49,9 @@ XTREME的XNLI和PAWS-X数据集是XTREME上的sequence-pair classification任务
 
 下载XTREME-PAWS-X数据集：
 [下载地址](https://storage.googleapis.com/paws/pawsx/x-final.tar.gz)
-训练集、验证集和测试集分别为`tran`、`dev`和`test`开头的`tsv`文件
+训练集、验证集和测试集分别为`train`、`dev`和`test`开头的`tsv`文件,
+
+`我们已经把所有的语言合进测试集, 此处可下载`[下载地址](https://aistudio.baidu.com/aistudio/datasetdetail/126002)，`test_2k.tsv是我们合并了多语言的测试集`
 
 
 ## 4环境依赖
