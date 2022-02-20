@@ -800,4 +800,26 @@ class RemBertModel(RembertPretrainedModel):
         assert len(head_mask.shape) == 5, f"head_mask.dim != 5, instead {len(head_mask.shape)}"
         return head_mask
 
+class RembertForSeqPairPred(RembertPretrainedModel):
+    def __init__(self, rembert, num_label):
+        super().__init__()
+        self.rembert = rembert
+        self.dense = nn.Linear(self.rembert.config['hidden_size'], num_label)
+        self.loss_fn = nn.CrossEntropyLoss()
+        self.dropout = nn.Dropout(0.1)
+        self.apply(self.init_weights)
+
+    def forward(self, input_ids, attention_mask, token_type_ids, labels=None):
+        pool_output = self.rembert(input_ids=input_ids,
+                                   attention_mask=attention_mask,
+                                   token_type_ids=token_type_ids)[1]
+
+        pool_output = self.dropout(pool_output)
+        logits = self.dense(pool_output)
+        if labels is not None:
+            loss = self.loss_fn(logits, labels.reshape([-1]))
+            return loss, logits
+        else:
+            return logits
+
 

@@ -17,29 +17,7 @@ import os
 import paddle
 from tqdm import tqdm
 from paddle.optimizer import AdamW
-from paddle.optimizer.lr import LRScheduler
-
-
-class LinearScheduleWithWarmup(LRScheduler):
-    def __init__(self,
-                 learning_rate,
-                 warmup_steps,
-                 max_train_steps,
-                 last_epoch=-1,
-                 verbose=False):
-
-        self.warmup_steps = warmup_steps
-        self.learning_rate = learning_rate
-        self.max_train_steps = max_train_steps
-        super(LinearScheduleWithWarmup, self).__init__(learning_rate, last_epoch, verbose)
-
-    def get_lr(self):
-        if self.last_epoch < self.warmup_steps:
-            warmup_percent = self.last_epoch / self.warmup_steps
-        else:
-            warmup_percent = 1 - self.last_epoch / self.max_train_steps
-
-        return self.learning_rate * warmup_percent
+from paddlenlp.transformers import LinearDecayWithWarmup
 
 
 class Trainer(object):
@@ -53,7 +31,7 @@ class Trainer(object):
         self.optimizer, self.scheduler = self._create_optimizer(model)
         self.scaler = paddle.amp.GradScaler(init_loss_scaling=1024)
         self.wd_params = [p.name for n, p in model.named_parameters() if
-                          not any(nd in n for nd in ["bias", "LayerNorm"])]
+                          not any(nd in n for nd in ["bias", "Norm"])]
 
     def train(self):
         model = self.model
@@ -61,10 +39,11 @@ class Trainer(object):
         epoch = 0
         global_step = 0
         tr_loss = 0.0
+        acc = 0.0
 
 
         model.train()
-        model, optimizer = paddle.amp.decorate(models=model, optimizers=self.optimizer, level='O2', 
+        model, self.optimizer = paddle.amp.decorate(models=model, optimizers=self.optimizer, level='O2', 
                                                     master_weight=None, save_dtype=None)
 
         with tqdm(total=self.num_train_steps) as pbar:
@@ -84,18 +63,21 @@ class Trainer(object):
                     scaled = self.scaler.scale(loss)
                     scaled.backward()
                     if (step + 1) % self.args.gradient_accumulation_steps == 0:
-                        self.scaler.minimize(optimizer, scaled)
+                        self.scaler.minimize(self.optimizer, scaled)
                         self.scheduler.step()
                         self.optimizer.clear_grad()
-                        pbar.set_description("epoch: %d loss: %.7f" % (epoch, loss))
+                        pbar.set_description("epoch: %d loss: %.7f acc: %.7f" % (epoch, loss, acc))
                         pbar.update()
                         global_step += 1
 
                         if global_step == self.num_train_steps:
                             break
-                output_dir = self.args.output_dir
+                    if (step + 1) % self.args.eval_step == 0:
+                        ac = self.step_callback(model, self.args)
+                        if ac > acc:
+                            acc = ac
+                            model.save_pretrained(self.args.output_dir)
 
-                model.save_pretrained(output_dir)
                 if global_step == self.num_train_steps:
                     break
                 epoch += 1
@@ -117,8 +99,7 @@ class Trainer(object):
             beta2=self.args.adam_b2), scheduler
 
     def _create_scheduler(self):
-        warmup_steps = int(self.num_train_steps * self.args.warmup_proportion)
-        return LinearScheduleWithWarmup(self.args.learning_rate, warmup_steps, self.num_train_steps)
+        return LinearDecayWithWarmup(self.args.learning_rate, self.num_train_steps, self.args.warmup_proportion)
 
     def _create_model_arguments(self, batch):
         return batch

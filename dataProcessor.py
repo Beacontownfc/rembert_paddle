@@ -102,16 +102,15 @@ class XNLIProcessor(object):
         examples.append(
               InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
       else:
-        if line[0] == 'en':
-          text_a = ' '.join(line[6].strip().split(' '))
-          text_b = ' '.join(line[7].strip().split(' '))
-          if line[1] == 'contradiction':
-              line[1] = 'contradictory'
-          label = self.get_labels().index(line[1].strip())
-          text_a = tokenization(text_a)['input_ids']
-          text_b = tokenization(text_b)['input_ids']
-          examples.append(
-              InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
+        text_a = ' '.join(line[6].strip().split(' '))
+        text_b = ' '.join(line[7].strip().split(' '))
+        if line[1] == 'contradiction':
+            line[1] = 'contradictory'
+        label = self.get_labels().index(line[1].strip())
+        text_a = tokenization(text_a)['input_ids']
+        text_b = tokenization(text_b)['input_ids']
+        examples.append(
+            InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
     return examples
 
   @classmethod

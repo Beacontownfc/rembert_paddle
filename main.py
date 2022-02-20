@@ -22,12 +22,12 @@ import paddle
 from paddle.io import DataLoader, DistributedBatchSampler
 from tqdm import tqdm
 from trainer import Trainer
-import pickle
 import numpy as np
-import copy
-from rembertForSeqPairPred import RembertForSeqPairPred
+from rembert.rembert_model import RembertForSeqPairPred
 from dataProcessor import MrpcProcessor, tokenization, XNLIProcessor
 from datagenerator import DataGenerator
+import paddle.distributed as dist
+import random
 
 
 logger = logging.getLogger(__name__)
@@ -36,39 +36,24 @@ parser = argparse.ArgumentParser(description="")
 parser.add_argument("--data_dir", type=str, default='/home/aistudio/data/data126002/')
 parser.add_argument("--do_eval", type=int, default=0)
 parser.add_argument("--do_train", type=int, default=0)
-parser.add_argument("--eval_batch_size", type=int, default=24)
+parser.add_argument("--eval_batch_size", type=int, default=16)
 parser.add_argument("--num_train_epochs", type=int, default=3)
-parser.add_argument("--seed", type=int, default=123456)
+parser.add_argument("--seed", type=int, default=42)
 parser.add_argument("--train_batch_size", type=int, default=16)
 parser.add_argument("--pretrain_model", default='/home/aistudio/data/data125938/')
 parser.add_argument("--output_dir", default="/home/aistudio/output/")
 parser.add_argument("--max_seq_length", default=512)
 parser.add_argument("--device", type=str, default="gpu")
-parser.add_argument("--gradient_accumulation_steps", default=3)
-parser.add_argument("--warmup_proportion", type=float, default=0.06)
-parser.add_argument("--learning_rate", type=float, default=1e-5)
+parser.add_argument("--gradient_accumulation_steps", default=2)
+parser.add_argument("--warmup_proportion", type=float, default=0.02)
+parser.add_argument("--learning_rate", type=float, default=8e-6)
 parser.add_argument("--adam_b1", type=float, default=0.9)
 parser.add_argument("--adam_b2", type=float, default=0.999)
 parser.add_argument("--weight_decay", type=float, default=0.01)
 parser.add_argument("--task", type=str, required=True)
+parser.add_argument("--eval_step", type=int, default=2000)
+parser.add_argument("--multicards", type=int, default=0)
 args = parser.parse_args()
-
-def check_state_dict(cur_model_state_dict, trg_model_state_dict):
-    """Check whether the parameter are loaded correctly"""
-    def mul(shape):
-        s = 1
-        for e in shape:
-            s *= e
-        return s
-
-    for k, v in cur_model_state_dict.items():
-        x = trg_model_state_dict.get(k, False)
-        if isinstance(x, bool):
-            print(k + " 参数不存在!!!")
-        else:
-            if x.shape != v.shape or (v == x).sum() != mul(v.shape):
-                print(k + ' 参数不正确!!!')
-
 
 def load_example(args, fold='train'):
     """Load data to DataLoader"""
@@ -116,7 +101,11 @@ def load_example(args, fold='train'):
     if fold in ("dev", "test"):
         dataloader = DataLoader(datagenerator, batch_size=args.eval_batch_size, shuffle=False, collate_fn=collate_fn)
     else:
-        dataloader = DataLoader(datagenerator, shuffle=True, batch_size=args.train_batch_size, collate_fn=collate_fn)
+        if args.multicards:
+            sampler = DistributedBatchSampler(datagenerator, batch_size=args.train_batch_size, shuffle=True, drop_last=False)
+            dataloader = DataLoader(datagenerator, batch_sampler=sampler)
+        else:
+            dataloader = DataLoader(datagenerator, shuffle=True, batch_size=args.train_batch_size, collate_fn=collate_fn)
             
     return dataloader, processor
 
@@ -127,11 +116,16 @@ def run(args):
         if args.task == 'xnli':
             num_label = 3
         model = RembertForSeqPairPred.from_pretrained(args.pretrain_model, num_label=num_label)
+
+        if args.multicards:
+            dist.init_parallel_env()  #如果使用多卡设置多卡环境
+            model = paddle.DataParallel(model)
+
         train_dataloader, processor = load_example(args, 'train')
         num_train_steps_per_epoch = len(train_dataloader) // args.gradient_accumulation_steps
         num_train_steps = int(num_train_steps_per_epoch * args.num_train_epochs)
         trainer = Trainer(
-            args, model=model, dataloader=train_dataloader, num_train_steps=num_train_steps)
+            args, model=model, dataloader=train_dataloader, num_train_steps=num_train_steps, step_callback=evaluate)
         trainer.train()
     
     if args.do_eval:
@@ -166,11 +160,15 @@ def evaluate(model, args):
         labels = batch[3].reshape([-1])
         total_corr += (pred == labels).astype('float32').sum().tolist()[0]
         total_pred += len(labels)
-    print('Acc:', total_corr / total_pred)
+    print('Accuracy:', total_corr / total_pred)
+    model.train()
+    return total_corr / total_pred
         
 
 if __name__ == '__main__':
     paddle.seed(args.seed)
+    random.seed(args.seed)
+    np.random.seed(args.seed)
     paddle.set_device(args.device)
     run(args)
 
