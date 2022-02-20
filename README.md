@@ -49,7 +49,11 @@ XTREME的XNLI和PAWS-X数据集是XTREME上的sequence-pair classification任务
 
 下载XTREME-PAWS-X数据集：
 [下载地址](https://storage.googleapis.com/paws/pawsx/x-final.tar.gz)
-训练集、验证集和测试集分别为`train`、`dev`和`test`开头的`tsv`文件,
+每个训练集、验证集和测试集分别为`train`、`dev`和`test`开头的`tsv`文件, 将所有语言的数据集解压后，运行下面脚本，可合并所有语言测试集(此任务需要在多语言进行测试)
+
+```bash
+python concat_paws_test_set.py
+```
 
 `我们已经把所有的语言合进测试集, 此处可下载`[下载地址](https://aistudio.baidu.com/aistudio/datasetdetail/126002)，`test_2k.tsv是我们合并了多语言的测试集`
 
